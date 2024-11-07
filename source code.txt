@@ -1,0 +1,52 @@
+mport pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Sample Dataset Creation
+data = pd.DataFrame({
+    'Year': [2018, 2019, 2020, 2021, 2022] * 5,
+    'Material_Name': ['Wheat', 'Wheat', 'Wheat', 'Wheat', 'Wheat',
+                      'Corn', 'Corn', 'Corn', 'Corn', 'Corn',
+                      'Rice', 'Rice', 'Rice', 'Rice', 'Rice',
+                      'Soybeans', 'Soybeans', 'Soybeans', 'Soybeans', 'Soybeans',
+                      'Barley', 'Barley', 'Barley', 'Barley', 'Barley'],
+    'Price': [220, 210, 230, 245, 260,    # Wheat prices
+              180, 185, 190, 200, 210,    # Corn prices
+              150, 155, 160, 165, 170,    # Rice prices
+              300, 295, 310, 320, 330,    # Soybeans prices
+              130, 140, 145, 150, 155]    # Barley prices
+})
+
+# Data Preprocessing
+data['Year'] = pd.to_datetime(data['Year'], format='%Y')
+data.sort_values(['Material_Name', 'Year'], inplace=True)
+
+# Calculate Price Range
+price_range = data.groupby('Material_Name')['Price'].agg(['min', 'max', 'mean']).sort_values(by='mean', ascending=False)
+high_range = price_range.head(3)  # Top 3 high range materials
+low_range = price_range.tail(3)   # Bottom 3 low range materials
+
+# Calculate Percentage Change
+data['Price_Change'] = data.groupby('Material_Name')['Price'].pct_change() * 100
+
+# Identify High/Low % Change Materials
+price_change_summary = data.groupby('Material_Name')['Price_Change'].mean().sort_values(ascending=False)
+high_change = price_change_summary.head(3)  # Top 3 high percentage change materials
+low_change = price_change_summary.tail(3)   # Bottom 3 low percentage change materials
+
+# Correlation Analysis and Heatmap
+pivot_data = data.pivot(index='Year', columns='Material_Name', values='Price')
+correlation_matrix = pivot_data.corr()
+
+# Displaying Results
+print("High Range Materials:\n", high_range)
+print("\nLow Range Materials:\n", low_range)
+print("\nHigh Percentage Change Materials:\n", high_change)
+print("\nLow Percentage Change Materials:\n", low_change)
+
+# Visualization
+plt.figure(figsize=(10, 8))
+sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm')
+plt.title('Correlation Heatmap of Agricultural Raw Material Prices')
+plt.show()
